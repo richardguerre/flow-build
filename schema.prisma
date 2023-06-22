@@ -1,0 +1,342 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+generator pothos {
+  provider = "prisma-pothos-types"
+}
+
+/// A day a user has planned or already done.
+/// Days that have not yet been planned are virtually created in the GraphQL API.
+model Day {
+  /// The date of the day, which acts as the ID
+  date       DateTime @id @db.Date
+  /// The order of the tasks in the day
+  tasksOrder Int[]
+
+  /// The tasks linked to the day.
+  tasks             Task[]
+  /// The notes linked to the day.
+  notes             Note[]
+  /// The routines completed on the day.
+  routinesCompleted Routine[]
+}
+
+/// A note that the user has created.
+model Note {
+  /// The id of the note
+  id        Int      @id @default(autoincrement())
+  /// The date and time of creation of the note
+  createdAt DateTime @default(now())
+  /// The date and time the note was last updated
+  updatedAt DateTime @updatedAt
+  /// The date the note was created
+  date      DateTime @db.Date
+  /// The day the note was created
+  day       Day      @relation(fields: [date], references: [date])
+  /// The slug of the note which needs to be unique.
+  /// It can be used to retrieve the note and update it.
+  slug      String   @unique
+  /// The title of the note
+  title     String
+  /// The content of the note in HTML. If it's text (i.e. one line),
+  /// it will most likely be converted to HTML by the TipTap editor.
+  content   String
+
+  /// The labels of the note
+  labels NoteLabel[]
+}
+
+/// A label that can be applied to a note.
+model NoteLabel {
+  /// The id of the note label
+  id        Int      @id @default(autoincrement())
+  /// The date and time of creation of the note label
+  createdAt DateTime @default(now())
+  /// The date and time the note label was last updated
+  updatedAt DateTime @updatedAt
+  /// The name of the note label
+  name      String
+  /// The slug (i.e. the url-safe version) of the note label name
+  slug      String   @unique
+  /// The color of the note label in hex
+  color     Color
+  /// Whether notes with this label should be private. (default: true)
+  isPrivate Boolean  @default(true)
+
+  /// The notes with this label
+  notes Note[]
+}
+
+/// A task that the user or a plugin has created.
+model Task {
+  /// The id of the task.
+  id                Int        @id @default(autoincrement())
+  /// The date and time of creation of the task
+  createdAt         DateTime   @default(now())
+  /// The date and time the task was last updated
+  updatedAt         DateTime   @updatedAt
+  /// The title of the task in text or HTML.
+  title             String
+  /// The status of the task
+  status            TaskStatus @default(TODO)
+  /// Whether the task can be superdone (i.e. setting the task to done in Flow + in external services)
+  canBeSuperdone    Boolean    @default(false)
+  /// The date and time the task was completed.
+  completedAt       DateTime?
+  /// The day the task is scheduled for
+  day               Day        @relation(fields: [date], references: [date])
+  /// The date the task is scheduled for
+  date              DateTime   @db.Date
+  /// The length of time the task is expected to take.
+  durationInMinutes Int?
+
+  /// The item linked to the task
+  item   Item? @relation(fields: [itemId], references: [id])
+  itemId Int?
+
+  /// The labels of the task 
+  labels      TaskLabel[]
+  /// The plugin datas of the task
+  pluginDatas TaskPluginData[]
+}
+
+// The description of each enum value is copied into src/graphql/Task.ts
+/// The status of a task
+enum TaskStatus {
+  /// When the task is planned or in progress.
+  TODO
+  /// When the task is done.
+  DONE
+  /// When the task was decided not to be done anymore.
+  CANCELED
+}
+
+/// A label that can be applied to a task.
+model TaskLabel {
+  /// The id of the task label
+  id        Int      @id @default(autoincrement())
+  /// The date and time of creation of the task label
+  createdAt DateTime @default(now())
+  /// The date and time the task label was last updated
+  updatedAt DateTime @updatedAt
+  /// The name of the task label
+  name      String
+  /// The slug (i.e. the url-safe version) of the task label name
+  slug      String   @unique
+  /// The color of the task label
+  color     Color
+  /// Whether tasks with this label should be private. (default: true)
+  isPrivate Boolean  @default(true)
+
+  tasks Task[]
+}
+
+/// The data required by a plugin to be linked to a task.
+model TaskPluginData {
+  /// The id of the task label
+  id         Int      @id @default(autoincrement())
+  /// The date and time of creation of the task plugin data
+  createdAt  DateTime @default(now())
+  /// The date and time the task plugin data was last updated
+  updatedAt  DateTime @updatedAt
+  /// The minimum data required to render the information on task cards.
+  min        Json
+  /// The full data required by the plugin to be linked to the task.
+  full       Json
+  /// The slug of the plugin that created the data
+  pluginSlug String
+  /// The original id of the task given by the plugin, if any
+  originalId String?
+
+  /// The task linked to the plugin data
+  task   Task @relation(fields: [taskId], references: [id])
+  taskId Int
+}
+
+/// The data a plugin links to an item.
+model ItemPluginData {
+  /// The id of the item label
+  id         Int      @id @default(autoincrement())
+  /// The date and time of creation of the item plugin data
+  createdAt  DateTime @default(now())
+  /// The date and time the item plugin data was last updated
+  updatedAt  DateTime @updatedAt
+  /// The minimum data required to render the information on item cards.
+  min        Json
+  /// The full data required by the plugin to be linked to the item.
+  full       Json
+  /// The slug of the plugin that created the data
+  pluginSlug String
+  /// The original id of the item given by the plugin, if any
+  originalId String?
+
+  /// The item linked to the plugin data
+  item   Item @relation(fields: [itemId], references: [id])
+  itemId Int
+}
+
+/// An item created by the user or a plugin. These items are then turned into tasks.
+/// It can be a calendar event, a Trello task, a Linear issue, a GitHub request for review, a notification, etc.
+model Item {
+  /// The id of the item
+  id                Int       @id @default(autoincrement())
+  /// The date and time of creation of the item
+  createdAt         DateTime  @default(now())
+  /// The date and time the item was last updated
+  updatedAt         DateTime  @updatedAt
+  /// The title of the item.
+  /// It is used as the initial title when creating a task from the item.
+  title             String
+  /// Whether the item is relevant to the user and should be shown. (default: true)
+  /// For example when a plugin creates an item for a Trello task, then later on the user arhives the task, the item is no longer relevant.
+  isRelevant        Boolean   @default(true)
+  /// The date and time the item is scheduled for.
+  scheduledAt       DateTime?
+  /// The length of time the item is expected to take. If the item is all-day, this is null.
+  durationInMinutes Int?
+  /// Whether the item is all-day on the date of `scheduledAt`.
+  isAllDay          Boolean   @default(false)
+  /// The color of the item in hex. Used in calendar views.
+  color             Color?
+
+  /// The tasks linked to the item
+  tasks       Task[]
+  /// The plugin datas linked to the item
+  pluginDatas ItemPluginData[]
+  /// The list in which the item is
+  list        List?            @relation(fields: [listId], references: [id])
+  listId      Int?
+}
+
+/// List of items
+model List {
+  /// The id of the list
+  id          Int      @id @default(autoincrement())
+  /// The date and time of creation of the list
+  createdAt   DateTime @default(now())
+  /// The date and time the list was last updated
+  updatedAt   DateTime @updatedAt
+  /// The name of the list
+  name        String
+  /// The slug (i.e. the url-safe version) of the list name
+  slug        String   @unique
+  /// The description of the list
+  description String?
+
+  /// The items linked to the list
+  items Item[]
+}
+
+/// A key-value store containing settings the user has modified for both Flow and plugins (by convention, the key is prefixed with the plugin's slug), or configs and secrents that plugins have stored such as API keys.
+model Store {
+  /// The id of the store item
+  id           Int      @id @default(autoincrement())
+  /// The date and time of creation of the store item
+  createdAt    DateTime @default(now())
+  /// The date and time the store item was last updated
+  updatedAt    DateTime @updatedAt
+  /// The key of the store item
+  key          String   @unique
+  /// The value of the store item
+  value        Json
+  /// The slug of the plugin the store item is linked to.
+  pluginSlug   String?
+  /// Whether the store item is secret.
+  /// Secret items are automatically server-only as well (even if the value of isServerOnly is false)
+  /// and can only be accessed by the plugin with the same pluginSlug.
+  isSecret     Boolean  @default(false)
+  /// Whether the store item is server-only.
+  /// Server-only items are not sent to the client.
+  isServerOnly Boolean  @default(false)
+
+  @@unique([pluginSlug, key], name: "pluginSlug_key_unique")
+}
+
+/// A routine the user has set up.
+model Routine {
+  /// The id of the routine
+  id              Int                 @id @default(autoincrement())
+  /// The date and time of creation of the routine
+  createdAt       DateTime            @default(now())
+  /// The date and time the routine was last updated
+  updatedAt       DateTime            @updatedAt
+  /// The name of the routine
+  name            String
+  /// The time the routine takes place
+  time            DateTime            @db.Time(0)
+  /// The pattern(s) the routine repeats on
+  repeats         RepetitionPattern[]
+  /// The date the routine starts repeating from
+  firstDay        DateTime            @default(now()) @db.Date
+  /// The date the routine end repeating on
+  lastDay         DateTime?           @db.Date
+  /// Whether the routine is active. This can be used to pause a routine.
+  isActive        Boolean             @default(true)
+  /// The steps of the routine.
+  /// A list of strings in the format `['flow' or pluginSlug]_[stepSlug]_[shouldSkip]`.
+  steps           String[]
+  /// The days the routine has been completed on.
+  daysCompletedOn Day[]
+}
+
+enum RepetitionPattern {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+
+  // following will be added later
+  // BIWEEKLY_MONDAY
+  // BIWEEKLY_TUESDAY
+  // BIWEEKLY_WEDNESDAY
+  // BIWEEKLY_THURSDAY
+  // BIWEEKLY_FRIDAY
+  // BIWEEKLY_SATURDAY
+  // BIWEEKLY_SUNDAY
+  // TRIWEEKLY_MONDAY
+  // TRIWEEKLY_TUESDAY
+  // TRIWEEKLY_WEDNESDAY
+  // TRIWEEKLY_THURSDAY
+  // TRIWEEKLY_FRIDAY
+  // TRIWEEKLY_SATURDAY
+  // TRIWEEKLY_SUNDAY
+  // FIRST_OF_MONTH
+  // LAST_OF_MONTH
+}
+
+/// TailwindCSS colors. Useful to generate a foreground and background color from each color,
+/// instead of having independent foreground and background colors
+enum Color {
+  slate
+  gray
+  zinc
+  neutral
+  stone
+  red
+  orange
+  amber
+  yellow
+  lime
+  green
+  emerald
+  teal
+  cyan
+  sky
+  blue
+  indigo
+  violet
+  purple
+  fuchsia
+  pink
+  rose
+}
