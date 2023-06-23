@@ -10,11 +10,17 @@ To deploy and run Flow, you simply need to clone this repo. Then, run the follow
 cd flow-build
 ```
 
-Then, run the following command to run Flow, where `PORT` is the port you want to run Flow on and `DATABASE_URL` is the URL of the postgres database you want to use (with migrations already run):
+Then, run the following command to run Flow:
 
 ```bash
-PORT=4000 DATABASE_URL=my_db_url node index.js
+PORT=4000 DATABASE_URL=my_db_url PATH_TO_PLUGINS="/my/path/to/plugins" node index.js
 ```
+
+Where
+
+- `PORT` is the port you want to run Flow on
+- `DATABASE_URL` is the URL of the postgres database you want to use (with migrations already run)
+- `PATH_TO_PLUGINS` is the path to the plugins directory you want to use. By default, this is `../../plugins` as that is the path during development of Flow (in richardguerre/flow) but you can change it to whatever you want, like `./plugins` in the same directory as `index.js`.
 
 ## Using PM2 instead of Node
 
@@ -23,20 +29,20 @@ Using PM2 is recommended over using Node to keep your Flow instance running. The
 For example:
 
 ```bash
-PORT=4000 DATABASE_URL=my_db_url pm2 start index.js
+PORT=4000 DATABASE_URL=my_db_url PATH_TO_PLUGINS="/my/path/to/plugins" pm2 start index.js
 ```
 
 You can learn more about PM2 [here](https://pm2.keymetrics.io/).
 
 # Deploying and running Flow on other OSes
 
-This repo currently contains the Prisma binary `libquery_engine-rhel-openssl-3.0.x.so.node` which is only compatible with Fedora 36 and later. If you want to run Flow on another OS, you will need to replace this binary with the one that is compatible with your OS. You can find out which binary you need to use by running the following command:
+This repo currently contains the Prisma binary `libquery_engine-rhel-openssl-3.0.x.so.node` which is only compatible with Fedora 36 and later, which is what the Amazon Linux uses. If you want to run Flow on another OS, you will need to replace this binary with the one that is compatible with your OS. You can find out which binary you need to use by running the following command:
 
 ```bash
 npx prisma -v
 ```
 
-The "Current platform" displayed will be what Prisma considers your OS to be. You can then download the binary by running `npx prisma init` and adding your binary in the `binaryTargets` option in the `schema.prisma` file. You can then run `npx prisma generate` to generate the binary and replace the one in this repo with it.
+The "Current platform" displayed is [the `binaryTarget` Prisma recommends using for your OS](https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#binarytargets-options). You can then download the binary by running `npx prisma init` and adding your binary in the `binaryTargets` option in the `schema.prisma` file. You can then run `npx prisma generate` to generate the binary and replace the one in this repo with it.
 
 The `binaryTargets` option should look something like this:
 
