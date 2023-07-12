@@ -13,13 +13,14 @@ cd flow-build
 Then, run the following command to run Flow:
 
 ```bash
-PORT=4000 DATABASE_URL=my_db_url PATH_TO_PLUGINS="/my/path/to/plugins" node index.js
+PORT=4000 DATABASE_URL=my_db_url ORIGIN=https://username.isflow.in PATH_TO_PLUGINS="/my/path/to/plugins" node index.js
 ```
 
 Where
 
 - `PORT` is the port you want to run Flow on
 - `DATABASE_URL` is the URL of the postgres database you want to use (with migrations already run)
+- `ORIGIN` is the origin of the Flow instance you want to run. This is used for redirecting back to the Flow instance after authenticating with a third-party service.
 - `PATH_TO_PLUGINS` is the path to the plugins directory you want to use. By default, this is `../../plugins` as that is the path during development of Flow (in richardguerre/flow) but you can change it to whatever you want, like `./plugins` in the same directory as `index.js`.
 
 ## Using PM2 instead of Node
@@ -29,7 +30,7 @@ Using PM2 is recommended over using Node to keep your Flow instance running. The
 For example:
 
 ```bash
-PORT=4000 DATABASE_URL=my_db_url PATH_TO_PLUGINS="/my/path/to/plugins" pm2 start index.js
+PORT=4000 DATABASE_URL=my_db_url ORIGIN=https://username.isflow.in PATH_TO_PLUGINS="/my/path/to/plugins" pm2 start index.js
 ```
 
 You can learn more about PM2 [here](https://pm2.keymetrics.io/).
