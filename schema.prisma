@@ -86,7 +86,7 @@ model Task {
   title             String
   /// The status of the task
   status            TaskStatus @default(TODO)
-  /// Whether the task can be superdone (i.e. setting the task to done in Flow + in external services)
+  /// Whether the task can be superdone (i.e. setting the task to done in Flow + setting the item linked to the task to done using the plugin).
   canBeSuperdone    Boolean    @default(false)
   /// The date and time the task was completed.
   completedAt       DateTime?
@@ -101,6 +101,12 @@ model Task {
   item   Item? @relation(fields: [itemId], references: [id])
   itemId Int?
 
+  /// The parent task of the task
+  parentTask   Task? @relation("Subtask", fields: [parentTaskId], references: [id])
+  parentTaskId Int?
+
+  /// The subtasks of the task
+  subtasks    Task[]           @relation("Subtask")
   /// The labels of the task 
   labels      TaskLabel[]
   /// The plugin datas of the task
@@ -269,6 +275,8 @@ model Routine {
   updatedAt       DateTime            @updatedAt
   /// The name of the routine
   name            String
+  /// Action name used on the button to start the routine
+  actionName      String
   /// The time the routine takes place
   time            DateTime            @db.Time(0)
   /// The pattern(s) the routine repeats on
