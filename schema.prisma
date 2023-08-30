@@ -188,7 +188,7 @@ model ItemPluginData {
   itemId Int
 }
 
-/// An item created by the user or a plugin. These items are then turned into tasks.
+/// An item created by the user or a plugin. The user can then create 1 or more tasks from the item.
 /// It can be a calendar event, a Trello task, a Linear issue, a GitHub request for review, a notification, etc.
 model Item {
   /// The id of the item
@@ -209,8 +209,11 @@ model Item {
   durationInMinutes Int?
   /// Whether the item is all-day on the date of `scheduledAt`.
   isAllDay          Boolean   @default(false)
-  /// The color of the item in hex. Used in calendar views.
+  /// The tailwind color of the item. Used in the calendar view.
   color             Color?
+  /// The number of inbox points the item has to be shown in the inbox.
+  /// The more inbox points an item has, the higher it is in the inbox.
+  inboxPoints       Int?
 
   /// The tasks linked to the item
   tasks       Task[]
@@ -249,11 +252,11 @@ model Store {
   /// The date and time the store item was last updated
   updatedAt    DateTime @updatedAt
   /// The key of the store item
-  key          String   @unique
+  key          String
   /// The value of the store item
   value        Json
   /// The slug of the plugin the store item is linked to.
-  pluginSlug   String?
+  pluginSlug   String
   /// Whether the store item is secret.
   /// Secret items are automatically server-only as well (even if the value of isServerOnly is false)
   /// and can only be accessed by the plugin with the same pluginSlug.
