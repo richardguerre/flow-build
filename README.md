@@ -1,6 +1,11 @@
 # flow-build
 
-Contains the latest build of the server and web app from the richardguerre/flow repo. It is mostly used to deploy Flow to different environments without having to clone the repo and build it.
+Contains the latest build of the server and web app from the [richardguerre/flow](https://github.com/richardguerre/flow) repo. It is mostly used to deploy Flow to different environments without the overhead of cloning the source repo, install dependencies and build it.
+
+> [!NOTE]
+> Flow uses [Bun](https://bun.sh/docs/cli/run) to run the server. You can try running it with Node directly, but it is not recommended, and no support will be provided for it.
+> 
+> You can find the specific version of Bun used in the `.bunrc` file.
 
 # Deploying and running Flow on Amazon Linux (Fedora)
 
@@ -13,7 +18,7 @@ cd flow-build
 Then, run the following command to run Flow:
 
 ```bash
-PORT=4000 DATABASE_URL=my_db_url ORIGIN=https://username.isflow.in PATH_TO_PLUGINS="/my/path/to/plugins" node index.js
+PORT=4000 DATABASE_URL=my_db_url ORIGIN=https://username.isflow.in PATH_TO_PLUGINS="/my/path/to/plugins" bun index.js
 ```
 
 Where
@@ -21,16 +26,16 @@ Where
 - `PORT` is the port you want to run Flow on
 - `DATABASE_URL` is the URL of the postgres database you want to use (with migrations already run)
 - `ORIGIN` is the origin of the Flow instance you want to run. This is used for redirecting back to the Flow instance after authenticating with a third-party service.
-- `PATH_TO_PLUGINS` is the path to the plugins directory you want to use. By default, this is `../../plugins` as that is the path during development of Flow (in richardguerre/flow) but you can change it to whatever you want, like `./plugins` in the same directory as `index.js`.
+- `PATH_TO_PLUGINS` is the path to the plugins directory you want to use. By default, this is `../../plugins` as that is the path during development of Flow (in [richardguerre/flow](https://github.com/richardguerre/flow)) but you can change it to whatever you want, like `./plugins` in the same directory as `index.js`.
 
-## Using PM2 instead of Node
+## Using PM2 instead of Bun directly
 
-Using PM2 is recommended over using Node to keep your Flow instance running. Then you can replace `node` with `pm2 start` to run Flow with PM2 instead of Node.
+Using PM2 is recommended over using Bun with the `--watch` flag as Bun's watch currently doesn't have a Ignore List feature, which means that the server would restart each time a plugin is installed or uninstalled, which is not desired and causes errors. Instead, you can wrap the command in a PM2 command like so:
 
 For example:
 
 ```bash
-PORT=4000 DATABASE_URL=my_db_url ORIGIN=https://username.isflow.in PATH_TO_PLUGINS="/my/path/to/plugins" pm2 start index.js
+pm2 start "PORT=4000 DATABASE_URL=my_db_url ORIGIN=https://username.isflow.in PATH_TO_PLUGINS=./my/path/to/plugins bun index.js"
 ```
 
 You can learn more about PM2 [here](https://pm2.keymetrics.io/).
