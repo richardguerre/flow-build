@@ -8832,7 +8832,7 @@ Env vars from ${te(l)} overwrite the ones from ${te(a)}
     return e === "library" ? "library" : e === "binary" ? "binary" : undefined;
   };
   var rs = function() {
-    return N.default.join("import.meta.dir", "../");
+    return N.default.join(import.meta.dir, "../");
   };
   var ti = function(e) {
     if (process.platform === "win32")
@@ -12005,30 +12005,30 @@ More Information: https://pris.ly/d/execute-raw
   var N = S(import.meta.require("path"));
   var Hu = S(Xn());
   var Df = D("prisma:engines");
-  N.default.join("import.meta.dir", "../query-engine-darwin");
-  N.default.join("import.meta.dir", "../query-engine-darwin-arm64");
-  N.default.join("import.meta.dir", "../query-engine-debian-openssl-1.0.x");
-  N.default.join("import.meta.dir", "../query-engine-debian-openssl-1.1.x");
-  N.default.join("import.meta.dir", "../query-engine-debian-openssl-3.0.x");
-  N.default.join("import.meta.dir", "../query-engine-linux-static-x64");
-  N.default.join("import.meta.dir", "../query-engine-linux-static-arm64");
-  N.default.join("import.meta.dir", "../query-engine-rhel-openssl-1.0.x");
-  N.default.join("import.meta.dir", "../query-engine-rhel-openssl-1.1.x");
-  N.default.join("import.meta.dir", "../query-engine-rhel-openssl-3.0.x");
-  N.default.join("import.meta.dir", "../libquery_engine-darwin.dylib.node");
-  N.default.join("import.meta.dir", "../libquery_engine-darwin-arm64.dylib.node");
-  N.default.join("import.meta.dir", "../libquery_engine-debian-openssl-1.0.x.so.node");
-  N.default.join("import.meta.dir", "../libquery_engine-debian-openssl-1.1.x.so.node");
-  N.default.join("import.meta.dir", "../libquery_engine-debian-openssl-3.0.x.so.node");
-  N.default.join("import.meta.dir", "../libquery_engine-linux-arm64-openssl-1.0.x.so.node");
-  N.default.join("import.meta.dir", "../libquery_engine-linux-arm64-openssl-1.1.x.so.node");
-  N.default.join("import.meta.dir", "../libquery_engine-linux-arm64-openssl-3.0.x.so.node");
-  N.default.join("import.meta.dir", "../libquery_engine-linux-musl.so.node");
-  N.default.join("import.meta.dir", "../libquery_engine-linux-musl-openssl-3.0.x.so.node");
-  N.default.join("import.meta.dir", "../libquery_engine-rhel-openssl-1.0.x.so.node");
-  N.default.join("import.meta.dir", "../libquery_engine-rhel-openssl-1.1.x.so.node");
-  N.default.join("import.meta.dir", "../libquery_engine-rhel-openssl-3.0.x.so.node");
-  N.default.join("import.meta.dir", "../query_engine-windows.dll.node");
+  N.default.join(import.meta.dir, "../query-engine-darwin");
+  N.default.join(import.meta.dir, "../query-engine-darwin-arm64");
+  N.default.join(import.meta.dir, "../query-engine-debian-openssl-1.0.x");
+  N.default.join(import.meta.dir, "../query-engine-debian-openssl-1.1.x");
+  N.default.join(import.meta.dir, "../query-engine-debian-openssl-3.0.x");
+  N.default.join(import.meta.dir, "../query-engine-linux-static-x64");
+  N.default.join(import.meta.dir, "../query-engine-linux-static-arm64");
+  N.default.join(import.meta.dir, "../query-engine-rhel-openssl-1.0.x");
+  N.default.join(import.meta.dir, "../query-engine-rhel-openssl-1.1.x");
+  N.default.join(import.meta.dir, "../query-engine-rhel-openssl-3.0.x");
+  N.default.join(import.meta.dir, "../libquery_engine-darwin.dylib.node");
+  N.default.join(import.meta.dir, "../libquery_engine-darwin-arm64.dylib.node");
+  N.default.join(import.meta.dir, "../libquery_engine-debian-openssl-1.0.x.so.node");
+  N.default.join(import.meta.dir, "../libquery_engine-debian-openssl-1.1.x.so.node");
+  N.default.join(import.meta.dir, "../libquery_engine-debian-openssl-3.0.x.so.node");
+  N.default.join(import.meta.dir, "../libquery_engine-linux-arm64-openssl-1.0.x.so.node");
+  N.default.join(import.meta.dir, "../libquery_engine-linux-arm64-openssl-1.1.x.so.node");
+  N.default.join(import.meta.dir, "../libquery_engine-linux-arm64-openssl-3.0.x.so.node");
+  N.default.join(import.meta.dir, "../libquery_engine-linux-musl.so.node");
+  N.default.join(import.meta.dir, "../libquery_engine-linux-musl-openssl-3.0.x.so.node");
+  N.default.join(import.meta.dir, "../libquery_engine-rhel-openssl-1.0.x.so.node");
+  N.default.join(import.meta.dir, "../libquery_engine-rhel-openssl-1.1.x.so.node");
+  N.default.join(import.meta.dir, "../libquery_engine-rhel-openssl-3.0.x.so.node");
+  N.default.join(import.meta.dir, "../query_engine-windows.dll.node");
   var ei = S(import.meta.require("fs"));
   var ns = D("chmodPlusX");
   var Nt = S(import.meta.require("path"));
@@ -14603,8 +14603,8 @@ var require_client = __commonJS((exports) => {
     noEngine: false
   };
   var fs = import.meta.require("fs");
-  config.dirname = "import.meta.dir";
-  if (!fs.existsSync(path.join("import.meta.dir", "schema.prisma"))) {
+  config.dirname = import.meta.dir;
+  if (!fs.existsSync(path.join(import.meta.dir, "schema.prisma"))) {
     const alternativePaths = [
       "../../node_modules/.prisma/client",
       "../node_modules/.prisma/client"
@@ -14625,13 +14625,13 @@ var require_client = __commonJS((exports) => {
   var PrismaClient = getPrismaClient2(config);
   exports.PrismaClient = PrismaClient;
   Object.assign(exports, Prisma);
-  path.join("import.meta.dir", "libquery_engine-darwin.dylib.node");
+  path.join(import.meta.dir, "libquery_engine-darwin.dylib.node");
   path.join(process.cwd(), "../../node_modules/.prisma/client/libquery_engine-darwin.dylib.node");
-  path.join("import.meta.dir", "libquery_engine-rhel-openssl-3.0.x.so.node");
+  path.join(import.meta.dir, "libquery_engine-rhel-openssl-3.0.x.so.node");
   path.join(process.cwd(), "../../node_modules/.prisma/client/libquery_engine-rhel-openssl-3.0.x.so.node");
-  path.join("import.meta.dir", "libquery_engine-darwin-arm64.dylib.node");
+  path.join(import.meta.dir, "libquery_engine-darwin-arm64.dylib.node");
   path.join(process.cwd(), "../../node_modules/.prisma/client/libquery_engine-darwin-arm64.dylib.node");
-  path.join("import.meta.dir", "schema.prisma");
+  path.join(import.meta.dir, "schema.prisma");
   path.join(process.cwd(), "../../node_modules/.prisma/client/schema.prisma");
 });
 
