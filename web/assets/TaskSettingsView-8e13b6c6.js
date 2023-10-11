@@ -1,1 +1,0 @@
-import{j as e}from"./index-635bce38.js";const r=()=>e("div",{children:"Task settings"},void 0,!1,{fileName:"/Users/richardguerre/Projects/flow/apps/web/src/views/TaskSettingsView.tsx",lineNumber:2,columnNumber:10},globalThis);export{r as default};
