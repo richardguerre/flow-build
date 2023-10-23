@@ -61319,7 +61319,13 @@ builder5.subscriptionField("notifications", (t) => t.field({
 // src/graphql/PluginOperation.ts
 var PluginOperationType = builder5.node(builder5.objectRef("PluginOperation"), {
   id: { resolve: (op) => op.id },
-  loadOne: async (id) => await loadOneWithInput(id, {}),
+  loadOne: async (id) => {
+    const [pluginSlug, operationName] = id.split("_");
+    if (!pluginSlug || !operationName) {
+      throw new GraphQLError(`Invalid plugin operation id: PluginOperation_${id}. It should be in the format of PluginOperation_pluginSlug_operationName.`);
+    }
+    return await loadOneWithInput(pluginSlug, operationName, {});
+  },
   fields: (t) => ({
     data: t.field({ type: "JSON", resolve: (op) => op.data, nullable: true })
   }),
@@ -61341,7 +61347,13 @@ query {
 Or you can do it through \`pluginOperation\` field if there are parameters to pass. For example:
 \`\`\`graphql
 query {
-  pluginOperation(pluginSlug: "pluginSlug", operationName: "operationName", input: { param1: "value1" }) {
+  pluginOperation(
+    input: {
+      pluginSlug: "pluginSlug",
+      operationName: "operationName",
+      data: { param1: "value1"}
+    }
+  ) {
     id
     data
   }
@@ -61351,7 +61363,13 @@ query {
 If you want to do a POST-like request, you can do it through \`pluginOperation\` field in the Mutation type. For example:
 \`\`\`graphql
 mutation {
-  pluginOperation(pluginSlug: "pluginSlug", operationName: "operationName", input: { param1: "value1" }) {
+  pluginOperation(
+    input: {
+      pluginSlug: "pluginSlug",
+      operationName: "operationName",
+      data: { param1: "value1"}
+    }
+  ) {
     id
     data
   }
@@ -61362,11 +61380,7 @@ What's the difference between \`pluginOperation\` field in the Query type and th
 - \`pluginOperation\` field in the Mutation type is used for POST-like requests and will invalidate any cached data from the \`pluginOperation\` field in the Query type and Relay will automatically update it's store.
 `
 });
-var loadOneWithInput = async (id, input6) => {
-  const [pluginSlug, operationName] = id.split("_");
-  if (!pluginSlug || !operationName) {
-    throw new GraphQLError(`Invalid plugin operation id: PluginOperation_${id}. It should be in the format of PluginOperation_pluginSlug_operationName.`);
-  }
+var loadOneWithInput = async (pluginSlug, operationName, input6) => {
   const plugins4 = await getPlugins2();
   const plugin3 = plugins4[pluginSlug];
   if (!plugin3) {
@@ -61402,7 +61416,7 @@ builder5.queryField("pluginOperation", (t) => t.fieldWithInput({
     data: t.input.field({ type: "JSON", required: false })
   },
   resolve: async (_, args) => {
-    return await loadOneWithInput(`PluginOperation_${args.input.pluginSlug}_${args.input.operationName}`, args.input.data ?? {});
+    return await loadOneWithInput(args.input.pluginSlug, args.input.operationName, args.input.data ?? {});
   }
 }));
 builder5.mutationField("pluginOperation", (t) => t.fieldWithInput({
@@ -61414,7 +61428,7 @@ builder5.mutationField("pluginOperation", (t) => t.fieldWithInput({
     data: t.input.field({ type: "JSON", required: false })
   },
   resolve: async (_, args) => {
-    return await loadOneWithInput(`PluginOperation_${args.input.pluginSlug}_${args.input.operationName}`, args.input.data ?? {});
+    return await loadOneWithInput(args.input.pluginSlug, args.input.operationName, args.input.data ?? {});
   }
 }));
 
