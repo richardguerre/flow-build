@@ -9,7 +9,7 @@ generator client {
   // rhel-openssl-3.0.x for production
   // darwin-arm64 for M1 Macs
   // debian-openssl-3.0.x for GitHub Actions on ubuntu-latest
-  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+  binaryTargets = ["native", "rhel-openssl-3.0.x", "darwin-arm64", "debian-openssl-3.0.x"]
 }
 
 generator pothos {
