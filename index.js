@@ -77109,7 +77109,8 @@ builder5.mutationField("createTemplate", (t) => t.prismaField({
         }
       });
     }
-    await renderTemplate(args.input.template, {}).catch((err) => {
+    const data = args.input.metadata && typeof args.input.metadata === "object" ? args.input.metadata : {};
+    await renderTemplate(args.input.template, data).catch((err) => {
       throw new GraphQLError(err.message, {
         extensions: {
           code: "INVALID_TEMPLATE",
@@ -77166,7 +77167,8 @@ builder5.mutationField("updateTemplate", (t) => t.prismaFieldWithInput({
       });
     }
     if (args.input.raw) {
-      await renderTemplate(args.input.raw, {}).catch((err) => {
+      const data = args.input.metadata && typeof args.input.metadata === "object" ? args.input.metadata : {};
+      await renderTemplate(args.input.raw, data).catch((err) => {
         throw new GraphQLError(err.message, {
           extensions: {
             code: "INVALID_TEMPLATE",
@@ -77220,7 +77222,8 @@ builder5.mutationField("createOrUpdateTemplate", (t) => t.prismaFieldWithInput({
         }
       });
     }
-    await renderTemplate(args.input.raw, {}).catch((err) => {
+    const data = args.input.metadata && typeof args.input.metadata === "object" ? args.input.metadata : {};
+    await renderTemplate(args.input.raw, data).catch((err) => {
       throw new GraphQLError(err.message, {
         extensions: {
           code: "INVALID_TEMPLATE",
