@@ -72236,6 +72236,9 @@ var registerFlowsDefaultHelpers = async (opts) => {
       if (!("title" in this))
         return "";
       const titleParsed = import_node_html_parser.default.parse(this.title);
+      titleParsed.querySelectorAll("p").forEach((tag) => {
+        tag.replaceWith(tag.innerHTML);
+      });
       titleParsed.querySelectorAll("span[data-tasktag-id]").forEach((tag) => {
         tag.replaceWith("");
       });
@@ -72253,8 +72256,14 @@ var registerFlowsDefaultHelpers = async (opts) => {
         where: { date: today.toISOString(), ...prismaArgs.where },
         include: { tags: true, pluginDatas: true, item: { select: { id: true } } }
       }).then((tasks2) => tasks2.map((task) => {
-        const title = task.title.replace(/<p>(.*)<\/p>/, "$1");
-        return { ...task, title: new Handlebars.SafeString(title) };
+        const titleParsed = import_node_html_parser.default.parse(task.title);
+        titleParsed.querySelectorAll("p").forEach((tag) => {
+          tag.replaceWith(tag.innerHTML);
+        });
+        return {
+          ...task,
+          title: new Handlebars.SafeString(titleParsed.toString())
+        };
       }));
       if (!options) {
         if (!tasks.length)
