@@ -32881,22 +32881,22 @@ var require_source_map_generator = __commonJS((exports) => {
     }, this);
   };
   SourceMapGenerator.prototype.toJSON = function SourceMapGenerator_toJSON() {
-    var map2 = {
+    var map3 = {
       version: this._version,
       sources: this._sources.toArray(),
       names: this._names.toArray(),
       mappings: this._serializeMappings()
     };
     if (this._file != null) {
-      map2.file = this._file;
+      map3.file = this._file;
     }
     if (this._sourceRoot != null) {
-      map2.sourceRoot = this._sourceRoot;
+      map3.sourceRoot = this._sourceRoot;
     }
     if (this._sourcesContents) {
-      map2.sourcesContent = this._generateSourcesContent(map2.sources, map2.sourceRoot);
+      map3.sourcesContent = this._generateSourcesContent(map3.sources, map3.sourceRoot);
     }
-    return map2;
+    return map3;
   };
   SourceMapGenerator.prototype.toString = function SourceMapGenerator_toString() {
     return JSON.stringify(this.toJSON());
@@ -33735,7 +33735,7 @@ var require_source_node = __commonJS((exports) => {
       line: 1,
       column: 0
     };
-    var map2 = new SourceMapGenerator(aArgs);
+    var map3 = new SourceMapGenerator(aArgs);
     var sourceMappingActive = false;
     var lastOriginalSource = null;
     var lastOriginalLine = null;
@@ -33745,7 +33745,7 @@ var require_source_node = __commonJS((exports) => {
       generated.code += chunk;
       if (original.source !== null && original.line !== null && original.column !== null) {
         if (lastOriginalSource !== original.source || lastOriginalLine !== original.line || lastOriginalColumn !== original.column || lastOriginalName !== original.name) {
-          map2.addMapping({
+          map3.addMapping({
             source: original.source,
             original: {
               line: original.line,
@@ -33764,7 +33764,7 @@ var require_source_node = __commonJS((exports) => {
         lastOriginalName = original.name;
         sourceMappingActive = true;
       } else if (sourceMappingActive) {
-        map2.addMapping({
+        map3.addMapping({
           generated: {
             line: generated.line,
             column: generated.column
@@ -33781,7 +33781,7 @@ var require_source_node = __commonJS((exports) => {
             lastOriginalSource = null;
             sourceMappingActive = false;
           } else if (sourceMappingActive) {
-            map2.addMapping({
+            map3.addMapping({
               source: original.source,
               original: {
                 line: original.line,
@@ -33800,9 +33800,9 @@ var require_source_node = __commonJS((exports) => {
       }
     });
     this.walkSourceContents(function(sourceFile, sourceContent) {
-      map2.setSourceContent(sourceFile, sourceContent);
+      map3.setSourceContent(sourceFile, sourceContent);
     });
-    return { code: generated.code, map: map2 };
+    return { code: generated.code, map: map3 };
   };
   exports.SourceNode = SourceNode;
 });
@@ -36606,7 +36606,7 @@ var require_escape = __commonJS((exports) => {
     }
     return ret + str.substr(lastIdx);
   };
-  var getEscaper = function(regex, map2) {
+  var getEscaper = function(regex, map3) {
     return function escape(data) {
       var match;
       var lastIdx = 0;
@@ -36615,7 +36615,7 @@ var require_escape = __commonJS((exports) => {
         if (lastIdx !== match.index) {
           result += data.substring(lastIdx, match.index);
         }
-        result += map2.get(match[0].charCodeAt(0));
+        result += map3.get(match[0].charCodeAt(0));
         lastIdx = match.index + 1;
       }
       return result + data.substring(lastIdx);
@@ -71187,6 +71187,19 @@ var decodeGlobalId = (globalId) => {
 var encodeGlobalId = (typename, id) => {
   return `${typename}_${id}`;
 };
+var map2 = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#39;"
+};
+var htmlEscape = (str) => {
+  return str.replace(/[&<>"']/g, (m) => map2[m] ?? m);
+};
+var htmlUnescape = (str) => {
+  return str.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+};
 
 // src/graphql/builder.ts
 function u(input6) {
@@ -72162,6 +72175,11 @@ var getUsersTimezone = async () => {
 
 // src/utils/renderTemplate.ts
 var import_node_html_parser = __toESM(require_dist3(), 1);
+var registerHelper = function(name, helper) {
+  return Handlebars.registerHelper(name, async function(...args) {
+    return helper.bind(this)(args.at(-1), ...args);
+  });
+};
 var Handlebars = import_handlebars_async_helpers.default(import_handlebars.default);
 var renderTemplate = async (template, data) => {
   console.log("renderTemplate()");
@@ -72170,8 +72188,8 @@ var renderTemplate = async (template, data) => {
   for (const [pluginSlug, plugin3] of Object.entries(plugins4)) {
     if (plugin3.handlebars?.helpers) {
       for (const [helperName, helper] of Object.entries(plugin3.handlebars.helpers)) {
-        helpers2[`${pluginSlug}-${helperName}`] = function(context, ...args) {
-          return helper.bind(this)(args.at(-1), context, ...args);
+        helpers2[`${pluginSlug}-${helperName}`] = function(...args) {
+          return helper.bind(this)(args.at(-1), ...args);
         };
       }
     }
@@ -72206,25 +72224,25 @@ var registerFlowsDefaultHelpers = async (opts) => {
   const usersTimezone = opts?.usersTimezone ?? await getUsersTimezone();
   const today = dayjs().tz(usersTimezone ?? undefined).utc(true).startOf("day");
   if (opts?.include?.yesterday) {
-    Handlebars.registerHelper("yesterday", async function(...args) {
-      const format = args.at(0) ?? "MMMM D, YYYY";
+    registerHelper("yesterday", async function(options) {
+      const format = options?.hash?.format ?? "MMMM D, YYYY";
       const yesterday = today.subtract(1, "day");
       if (format === "ISO")
         return yesterday.toISOString();
-      return yesterday.format(format ?? "MMMM D, YYYY");
+      return yesterday.format(format);
     });
   }
   if (opts?.include?.today) {
-    Handlebars.registerHelper("today", async function(...args) {
-      const format = args.at(0) ?? "MMMM D, YYYY";
+    registerHelper("today", async function(options) {
+      const format = options?.hash?.format ?? "MMMM D, YYYY";
       if (format === "ISO")
         return today.toISOString();
-      return today.format(format ?? "MMMM D, YYYY");
+      return today.format(format);
     });
   }
   if (opts?.include?.tomorrow) {
-    Handlebars.registerHelper("tomorrow", async function(...args) {
-      const format = args.at(0) ?? "MMMM D, YYYY";
+    registerHelper("tomorrow", async function(options) {
+      const format = options?.hash?.format ?? "MMMM D, YYYY";
       const tomorrow = today.add(1, "day");
       if (format === "ISO")
         return tomorrow.toISOString();
@@ -72232,7 +72250,7 @@ var registerFlowsDefaultHelpers = async (opts) => {
     });
   }
   if (opts?.include?.["title-without-tags"]) {
-    Handlebars.registerHelper("title-without-tags", async function() {
+    registerHelper("title-without-tags", async function() {
       if (!("title" in this))
         return "";
       const titleParsed = import_node_html_parser.default.parse(this.title);
@@ -72246,10 +72264,9 @@ var registerFlowsDefaultHelpers = async (opts) => {
     });
   }
   if (opts?.include?.tasks) {
-    Handlebars.registerHelper("tasks", async function(...args) {
-      const options = args.at(-1);
-      const arg0 = args.at(0);
-      const prismaArgsRendered = !isHandlebarsCtx(arg0) ? await Handlebars.compile(JSON.stringify(arg0))(options?.data?.root ?? this ?? {}) : "{}";
+    registerHelper("tasks", async function(options) {
+      const filter2 = options?.hash?.filter ?? {};
+      const prismaArgsRendered = !isHandlebarsCtx(filter2) ? await Handlebars.compile(JSON.stringify(filter2))(options?.data?.root ?? this ?? {}) : "{}";
       const prismaArgs = JSON.parse(prismaArgsRendered) ?? {};
       const tasks = await prisma.task.findMany({
         ...prismaArgs,
@@ -74271,7 +74288,7 @@ function encodeXML(str) {
   }
   return ret + str.substr(lastIdx);
 }
-var getEscaper = function(regex, map2) {
+var getEscaper = function(regex, map3) {
   return function escape(data) {
     let match;
     let lastIdx = 0;
@@ -74280,7 +74297,7 @@ var getEscaper = function(regex, map2) {
       if (lastIdx !== match.index) {
         result += data.substring(lastIdx, match.index);
       }
-      result += map2.get(match[0].charCodeAt(0));
+      result += map3.get(match[0].charCodeAt(0));
       lastIdx = match.index + 1;
     }
     return result + data.substring(lastIdx);
@@ -75476,8 +75493,12 @@ var getPluginOptions = (pluginSlug) => ({
   GraphQLError,
   renderTemplate,
   Handlebars: { SafeString: Handlebars.SafeString },
-  parseHtml: import_node_html_parser2.default.parse,
-  htmlToSlack: dist_default,
+  html: {
+    parse: import_node_html_parser2.default.parse,
+    toSlack: dist_default,
+    escape: htmlEscape,
+    unescape: htmlUnescape
+  },
   decodeGlobalId,
   encodeGlobalId
 });
@@ -76045,7 +76066,8 @@ Any other scenario is not possible by nature of the app, where tasks:
     const plugins4 = await getPlugins2();
     await prisma.$transaction(async (tx) => {
       const newStatus = args.input.status;
-      const task = await tx.task.findUniqueOrThrow({
+      let updatedTask;
+      const task = updatedTask = await tx.task.findUniqueOrThrow({
         where: { id: parseInt(args.input.id.id) },
         include: { day: { select: { date: true, tasksOrder: true } }, pluginDatas: true }
       });
@@ -76062,8 +76084,9 @@ Any other scenario is not possible by nature of the app, where tasks:
       const endOfToday = endOfDay();
       if (task.status === newStatus) {
       } else if (task.date >= startOfToday && task.date <= endOfToday) {
-        await tx.task.update({
+        updatedTask = await tx.task.update({
           where: { id: task.id },
+          include: { pluginDatas: true },
           data: {
             status: newStatus,
             completedAt: newStatus === "DONE" ? new Date : null,
@@ -76090,8 +76113,9 @@ Any other scenario is not possible by nature of the app, where tasks:
         });
         days.push(task.date);
       } else if (task.date > endOfToday && (newStatus === "DONE" || newStatus === "CANCELED")) {
-        await tx.task.update({
+        updatedTask = await tx.task.update({
           where: { id: task.id },
+          include: { pluginDatas: true },
           data: {
             status: newStatus,
             completedAt: newStatus === "DONE" ? new Date : null,
@@ -76125,7 +76149,7 @@ Any other scenario is not possible by nature of the app, where tasks:
         days.push(originalDay.date);
       } else if (task.date < startOfToday) {
         if (newStatus === "TODO") {
-          const updatedTask = await tx.task.update({
+          const $updatedTask = updatedTask = await tx.task.update({
             where: { id: task.id },
             data: {
               status: newStatus,
@@ -76147,7 +76171,8 @@ Any other scenario is not possible by nature of the app, where tasks:
                 }
               }
             },
-            select: {
+            include: {
+              pluginDatas: true,
               day: {
                 select: { tasks: { select: { id: true, status: true } }, tasksOrder: true }
               }
@@ -76158,17 +76183,18 @@ Any other scenario is not possible by nature of the app, where tasks:
             data: { tasksOrder: { set: originalDay.tasksOrder.filter((id) => id !== task.id) } }
           });
           days.push(task.date);
-          const tasksOrdered = updatedTask.day.tasks.sort((a, b) => updatedTask.day.tasksOrder.indexOf(a.id) - updatedTask.day.tasksOrder.indexOf(b.id));
+          const tasksOrdered = $updatedTask.day.tasks.sort((a, b) => $updatedTask.day.tasksOrder.indexOf(a.id) - $updatedTask.day.tasksOrder.indexOf(b.id));
           const lastTodoIndex = tasksOrdered.findIndex((t2) => t2.status === "TODO");
-          const newTasksOrder = updatedTask.day.tasksOrder.splice(lastTodoIndex + 1, 0, task.id);
+          const newTasksOrder = $updatedTask.day.tasksOrder.splice(lastTodoIndex + 1, 0, task.id);
           await tx.day.update({
             where: { date: startOfToday },
             data: { tasksOrder: { set: newTasksOrder } }
           });
           days.push(startOfToday);
         } else {
-          await tx.task.update({
+          updatedTask = await tx.task.update({
             where: { id: task.id },
+            include: { pluginDatas: true },
             data: {
               status: newStatus,
               completedAt: newStatus === "DONE" ? dayjs(task.date).endOf("day").toDate() : null,
@@ -76188,7 +76214,7 @@ Any other scenario is not possible by nature of the app, where tasks:
       }
       for (const pluginSlug in plugins4) {
         const plugin3 = plugins4[pluginSlug];
-        await plugin3.onUpdateTaskStatusEnd?.({ task, newStatus }).catch(console.error);
+        await plugin3.onUpdateTaskStatusEnd?.({ task: updatedTask, newStatus }).catch(console.error);
       }
     });
     return prisma.day.findMany({
