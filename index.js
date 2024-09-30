@@ -72154,6 +72154,19 @@ var createExternalCalendarItem = async ({ data: item }) => {
     await plugin3.onCreateCalendarItem({ item });
   }
 };
+var pluginPgBossWorkers = async (props) => {
+  const plugins4 = props?.plugins ?? await getPlugins2();
+  for (const [pluginSlug, plugin3] of Object.entries(plugins4)) {
+    const handlers = plugin3.handlePgBossWork?.((name, ...args) => {
+      return pgBoss.work(`${pluginSlug}-${name}`, ...args);
+    }) ?? [];
+    await Promise.all(handlers);
+  }
+};
+var reloadPluginPgBossWorkers = async (props) => {
+  pgBoss.offWork(props.pluginSlug);
+  await pluginPgBossWorkers(props);
+};
 var pgBossWorkers = async () => {
   if (env.NODE_ENV !== "development") {
     await pgBoss.work(ROLLOVER_TASKS_JOB_NAME, syncTasks);
@@ -75553,6 +75566,10 @@ async function installServerPlugin(opts) {
   await fs.rename(pathToTemp, path.join(pathToPlugins, `${opts.slug}.js`));
   const plugin3 = exported.plugin(getPluginOptions(opts.slug));
   cache3.set(opts.slug, plugin3);
+  await reloadPluginPgBossWorkers({
+    pluginSlug: opts.slug,
+    plugins: Object.fromEntries(cache3.entries())
+  });
   await plugin3.onInstall?.();
 }
 async function uninstallServerPlugin(slug) {
@@ -76001,10 +76018,11 @@ builder5.mutationField("updateTask", (t) => t.prismaFieldWithInput({
       description: "The IDs of tags to be unlinked from the task. If you want to create a new tag, use the `newTags` input."
     })
   },
-  resolve: (query3, _, args) => {
-    return prisma.task.update({
+  resolve: async (query3, _, args) => {
+    const updatedTask = await prisma.task.update({
       ...query3,
       where: { id: parseInt(args.input.id.id) },
+      include: { ...query3.include, pluginDatas: true },
       data: {
         title: u(args.input.title),
         durationInMinutes: args.input.durationInMinutes,
@@ -76020,6 +76038,12 @@ builder5.mutationField("updateTask", (t) => t.prismaFieldWithInput({
         }
       }
     });
+    const plugins4 = await getPlugins2();
+    for (const pluginSlug in plugins4) {
+      const plugin3 = plugins4[pluginSlug];
+      await plugin3.onUpdateTaskEnd?.({ task: updatedTask }).catch(console.error);
+    }
+    return updatedTask;
   }
 }));
 builder5.mutationField("deleteTask", (t) => t.prismaField({
@@ -77793,10 +77817,7 @@ if (env.NODE_ENV !== "test") {
   });
   await pgBoss.start();
   console.log("\u2705 PgBoss started.");
-  for (const plugin3 of Object.values(plugins4)) {
-    const handlers = plugin3.handlePgBossWork?.(pgBoss.work) ?? [];
-    await Promise.all(handlers);
-  }
+  await pluginPgBossWorkers({ plugins: plugins4 });
   await pgBossWorkers();
   if (env.NODE_ENV !== "development") {
     const timezone3 = await getTimezone();
