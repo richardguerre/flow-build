@@ -75408,115 +75408,131 @@ var convertHtmlToSlackBlocks = function(html) {
 var dist_default = convertHtmlToSlackBlocks;
 
 // src/utils/getPluginOptions.ts
-var getPluginOptions = (pluginSlug) => ({
-  pluginSlug,
-  serverOrigin: env.ORIGIN,
-  dayjs,
-  pgBoss: {
-    send: pgBoss.send,
-    sendAfter: pgBoss.sendAfter,
-    sendOnce: pgBoss.sendOnce,
-    sendSingleton: pgBoss.sendSingleton,
-    sendThrottled: pgBoss.sendThrottled,
-    sendDebounced: pgBoss.sendDebounced,
-    schedule: pgBoss.schedule,
-    unschedule: pgBoss.unschedule,
-    cancel: pgBoss.cancel
-  },
-  prisma: {
-    day: {
-      findUnique: prisma.day.findUnique,
-      findUniqueOrThrow: prisma.day.findUniqueOrThrow,
-      findFirst: prisma.day.findFirst,
-      findFirstOrThrow: prisma.day.findFirstOrThrow,
-      findMany: prisma.day.findMany,
-      count: prisma.day.count,
-      aggregate: prisma.day.aggregate,
-      groupBy: prisma.day.groupBy
-    },
-    note: prisma.note,
-    noteTag: prisma.noteTag,
-    task: prisma.task,
-    taskPluginData: prisma.taskPluginData,
-    taskTag: prisma.taskTag,
-    item: prisma.item,
-    itemPluginData: prisma.itemPluginData,
-    list: prisma.list,
-    routine: prisma.routine,
-    routineStep: prisma.routineStep,
-    template: prisma.template
-  },
-  store: {
-    setItem: async (key, value) => {
-      if (typeof value === "symbol" || typeof value === "function") {
-        throw new Error("Cannot store symbols or functions in the store.");
-      }
-      const result = await prisma.store.upsert({
-        where: { pluginSlug_key_unique: { pluginSlug, key } },
-        update: { value },
-        create: { pluginSlug, key, value }
-      });
-      return result;
-    },
-    setSecretItem: async (key, value) => {
-      if (typeof value === "symbol" || typeof value === "function") {
-        throw new Error("Cannot store symbols or functions in the store.");
-      }
-      const result = await prisma.store.upsert({
-        where: { pluginSlug_key_unique: { pluginSlug, key } },
-        update: { value },
-        create: { pluginSlug, key, value, isSecret: true, isServerOnly: true }
-      });
-      return result;
-    },
-    setServerOnlyItem: async (key, value) => {
-      if (typeof value === "symbol" || typeof value === "function") {
-        throw new Error("Cannot store symbols or functions in the store.");
-      }
-      const result = await prisma.store.upsert({
-        where: { pluginSlug_key_unique: { pluginSlug, key } },
-        update: { value },
-        create: { pluginSlug, key, value, isServerOnly: true }
-      });
-      return result;
-    },
-    deleteItem: async (key) => {
-      const result = await prisma.store.delete({
-        where: { pluginSlug_key_unique: { pluginSlug, key } }
-      });
-      return result;
-    },
-    getPluginItem: async (key) => {
-      const result = await prisma.store.findFirst({
-        where: { key, pluginSlug }
-      });
-      return result;
-    },
-    getItem: async (key, opts) => {
-      const result = await prisma.store.findFirst({
-        where: { key, pluginSlug: opts?.pluginSlug, isSecret: false }
-      });
-      return result;
+var getPluginOptions = (pluginSlug) => {
+  const pgBossSend = (...args) => {
+    if (typeof args[2] === "object" && args[2] !== null) {
+      const name = `${pluginSlug}-${args[0]}`;
+      return pgBoss.send(name, args[1], args[2]);
+    } else if (typeof args[0] === "string") {
+      const name = `${pluginSlug}-${args[0]}`;
+      return pgBoss.send(name, args[1]);
     }
-  },
-  getUsersTimezone,
-  getInstalledPlugins: async () => {
-    const plugins4 = await getPlugins2();
-    return Object.keys(plugins4).map((slug) => ({ slug }));
-  },
-  getNearestItemColor: (hex) => nearestTailwindColor(hex),
-  GraphQLError,
-  renderTemplate,
-  Handlebars: { SafeString: Handlebars.SafeString },
-  html: {
-    parse: import_node_html_parser2.default.parse,
-    toSlack: dist_default,
-    escape: htmlEscape,
-    unescape: htmlUnescape
-  },
-  decodeGlobalId,
-  encodeGlobalId
-});
+    const request = args[0];
+    return pgBoss.send({ ...request, name: `${pluginSlug}-${request.name}` });
+  };
+  const pgBossSchedule = ($name, ...args) => {
+    const name = `${pluginSlug}-${$name}`;
+    return pgBoss.schedule(name, ...args);
+  };
+  const pgBossUnschedule = ($name) => {
+    const name = `${pluginSlug}-${$name}`;
+    return pgBoss.unschedule(name);
+  };
+  return {
+    pluginSlug,
+    serverOrigin: env.ORIGIN,
+    dayjs,
+    pgBoss: {
+      send: pgBossSend,
+      schedule: pgBossSchedule,
+      unschedule: pgBossUnschedule,
+      cancel: pgBoss.cancel
+    },
+    prisma: {
+      day: {
+        findUnique: prisma.day.findUnique,
+        findUniqueOrThrow: prisma.day.findUniqueOrThrow,
+        findFirst: prisma.day.findFirst,
+        findFirstOrThrow: prisma.day.findFirstOrThrow,
+        findMany: prisma.day.findMany,
+        count: prisma.day.count,
+        aggregate: prisma.day.aggregate,
+        groupBy: prisma.day.groupBy
+      },
+      note: prisma.note,
+      noteTag: prisma.noteTag,
+      task: prisma.task,
+      taskPluginData: prisma.taskPluginData,
+      taskTag: prisma.taskTag,
+      item: prisma.item,
+      itemPluginData: prisma.itemPluginData,
+      list: prisma.list,
+      routine: prisma.routine,
+      routineStep: prisma.routineStep,
+      template: prisma.template
+    },
+    store: {
+      setItem: async (key, value) => {
+        if (typeof value === "symbol" || typeof value === "function") {
+          throw new Error("Cannot store symbols or functions in the store.");
+        }
+        const result = await prisma.store.upsert({
+          where: { pluginSlug_key_unique: { pluginSlug, key } },
+          update: { value },
+          create: { pluginSlug, key, value }
+        });
+        return result;
+      },
+      setSecretItem: async (key, value) => {
+        if (typeof value === "symbol" || typeof value === "function") {
+          throw new Error("Cannot store symbols or functions in the store.");
+        }
+        const result = await prisma.store.upsert({
+          where: { pluginSlug_key_unique: { pluginSlug, key } },
+          update: { value },
+          create: { pluginSlug, key, value, isSecret: true, isServerOnly: true }
+        });
+        return result;
+      },
+      setServerOnlyItem: async (key, value) => {
+        if (typeof value === "symbol" || typeof value === "function") {
+          throw new Error("Cannot store symbols or functions in the store.");
+        }
+        const result = await prisma.store.upsert({
+          where: { pluginSlug_key_unique: { pluginSlug, key } },
+          update: { value },
+          create: { pluginSlug, key, value, isServerOnly: true }
+        });
+        return result;
+      },
+      deleteItem: async (key) => {
+        const result = await prisma.store.delete({
+          where: { pluginSlug_key_unique: { pluginSlug, key } }
+        });
+        return result;
+      },
+      getPluginItem: async (key) => {
+        const result = await prisma.store.findFirst({
+          where: { key, pluginSlug }
+        });
+        return result;
+      },
+      getItem: async (key, opts) => {
+        const result = await prisma.store.findFirst({
+          where: { key, pluginSlug: opts?.pluginSlug, isSecret: false }
+        });
+        return result;
+      }
+    },
+    getUsersTimezone,
+    getInstalledPlugins: async () => {
+      const plugins4 = await getPlugins2();
+      return Object.keys(plugins4).map((slug) => ({ slug }));
+    },
+    getNearestItemColor: (hex) => nearestTailwindColor(hex),
+    GraphQLError,
+    renderTemplate,
+    Handlebars: { SafeString: Handlebars.SafeString },
+    html: {
+      parse: import_node_html_parser2.default.parse,
+      toSlack: dist_default,
+      escape: htmlEscape,
+      unescape: htmlUnescape
+    },
+    decodeGlobalId,
+    encodeGlobalId
+  };
+};
 
 // src/utils/getPlugins.ts
 async function installServerPlugin(opts) {
