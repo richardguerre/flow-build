@@ -72158,7 +72158,9 @@ var pluginPgBossWorkers = async (props) => {
   const plugins4 = props?.plugins ?? await getPlugins2();
   for (const [pluginSlug, plugin3] of Object.entries(plugins4)) {
     const handlers = plugin3.handlePgBossWork?.((name, ...args) => {
-      return pgBoss.work(`${pluginSlug}-${name}`, ...args);
+      const workerName = `${pluginSlug}-${name}`;
+      console.log(`Starting worker \`${workerName}\``);
+      return pgBoss.work(workerName, ...args);
     }) ?? [];
     await Promise.all(handlers);
   }
