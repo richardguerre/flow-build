@@ -71267,6 +71267,7 @@ var builder5 = new esm_default({
   smartSubscriptions: {
     subscribe: async ($name, context, callback) => {
       const name = $name;
+      console.log("subscribing", name);
       if (!context.subscriptions[name])
         context.subscriptions[name] = pubsub.subscribe(name);
       for await (const data of context.subscriptions[name]) {
@@ -71275,6 +71276,7 @@ var builder5 = new esm_default({
     },
     unsubscribe: ($name, context) => {
       const name = $name;
+      console.log("unsubscribing", name);
       context.subscriptions[name]?.return?.();
       delete context.subscriptions[name];
     }
