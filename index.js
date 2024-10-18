@@ -71271,6 +71271,7 @@ var builder5 = new esm_default({
       if (!context.subscriptions[name])
         context.subscriptions[name] = pubsub.subscribe(name);
       for await (const data of context.subscriptions[name]) {
+        console.log("working on", name, data);
         callback(undefined, data);
       }
     },
