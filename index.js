@@ -71270,7 +71270,6 @@ var builder5 = new esm_default({
       console.log("subscribing", name);
       if (!context.subscriptions[name])
         context.subscriptions[name] = pubsub.subscribe(name);
-      console.log("subscriptions", JSON.stringify(context.subscriptions));
       for await (const data of context.subscriptions[name]) {
         callback(undefined, data);
       }
@@ -76431,14 +76430,16 @@ Pass the \`where\` argument to override these defaults.`,
     subs.register("itemsUpdated");
     subs.register("itemsDeleted");
   },
-  resolve: (query3, _, args) => {
+  resolve: async (query3, _, args) => {
     console.log("items query");
-    return prisma.item.findMany({
+    const res = await prisma.item.findMany({
       ...query3,
       take: undefined,
       where: args.where ?? undefined,
       orderBy: args.orderBy ?? undefined
     });
+    console.log(res);
+    return res;
   }
 }));
 builder5.queryField("canRefreshCalendarItems", (t) => t.field({
