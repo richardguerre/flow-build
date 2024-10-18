@@ -76434,7 +76434,7 @@ Pass the \`where\` argument to override these defaults.`,
     console.log("items query");
     const res = await prisma.item.findMany({
       ...query3,
-      take: undefined,
+      ...args.where ? { take: undefined } : {},
       where: args.where ?? undefined,
       orderBy: args.orderBy ?? undefined
     });
