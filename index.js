@@ -76429,6 +76429,7 @@ Pass the \`where\` argument to override these defaults.`,
     subs.register("itemsDeleted");
   },
   resolve: (query3, _, args) => {
+    console.log("items query");
     return prisma.item.findMany({
       ...query3,
       take: undefined,
